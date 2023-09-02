@@ -1,0 +1,31 @@
+{
+    "$schema": "../../../system/schema/extend.json",
+    "name": "Sitemap",
+    "description": "The Sitemap plugin makes it easier for you to create a sitemap for your website.",
+    "authors": [
+        {"name": "Friends of Sunlight", "url": "https://github.com/friends-of-sunlight-cms/"}
+    ],
+    "version": "1.0.0",
+    "environment": {
+        "system": "^8.0"
+    },
+    "config_defaults": {
+        "auto_generate": true,
+        "level_access": 1000
+    },
+    "langs": {
+        "sitemap": "lang"
+    },
+    "events": [],
+    "events.web": [],
+    "events.admin": [
+        {"event": "admin.init", "script": "event/admin/admin_init.php"},
+        {"event": "admin.content.modules", "script": "event/admin/content_modules.php"},
+        {"event": "admin.page.new", "script": "event/admin/refresh_sitemap.php"},
+        {"event": "admin.page.edit", "script": "event/admin/page_edit.php"},
+        {"event": "admin.page.delete", "script": "event/admin/refresh_sitemap.php"},
+        {"event": "admin.article.new", "script": "event/admin/refresh_sitemap.php"},
+        {"event": "admin.article.edit", "script": "event/admin/article_edit.php"},
+        {"event": "admin.article.delete", "script": "event/admin/refresh_sitemap.php"}
+    ]
+}
