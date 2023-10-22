@@ -8,12 +8,32 @@ use Sunlight\Page\Page;
 
 class SitemapTreeFilter implements TreeFilterInterface
 {
+    /** @var array */
+    private $options;
     /** @var string */
     private $sql;
 
-    function __construct()
+    /**
+     * Supported options:
+     * ------------------
+     * - check_visible (1) check page's visible column 1/0
+     * - check_public (1) check page's public column 1/0
+     *
+     * @param array{
+     *     check_visible?: bool,
+     *     check_public?: bool,
+     * } $options see description
+     */
+    function __construct(array $options)
     {
-        $this->sql = $this->compileSql([]);
+        // defaults
+        $options += [
+            'check_visible' => true,
+            'check_public' => true,
+        ];
+
+        $this->options = $options;
+        $this->sql = $this->compileSql($options);
     }
 
     /**
@@ -24,9 +44,9 @@ class SitemapTreeFilter implements TreeFilterInterface
     function filterNode(array $node, TreeReader $reader): bool
     {
         return
-            /* visibility */ $node['visible'] == 1
+            /* visibility */ (!$this->options['check_visible'] || $node['visible'] == 1)
             /* page level */ && $node['level'] == 0
-            /* page public */ && $node['public'] == 1
+            /* page public */ && (!$this->options['check_public'] || $node['public'] == 1)
             /* type check */ && ($node['type'] != Page::SEPARATOR || $node['type'] != Page::LINK);
     }
 
@@ -57,10 +77,14 @@ class SitemapTreeFilter implements TreeFilterInterface
     private function compileSql(array $options): string
     {
         // base conditions
-        $sql = '%__node__%.public=1';
-        $sql .= ' AND %__node__%.visible=1';
+        $sql = '%__node__%.level=0';
+        if ($options['check_public']) {
+            $sql .= ' AND %__node__%.public=1';
+        }
+        if ($options['check_visible']) {
+            $sql .= ' AND %__node__%.visible=1';
+        }
         $sql .= ' AND (%__node__%.type!=' . Page::SEPARATOR . ' AND %__node__%.type!=' . Page::LINK . ')';
-        $sql .= ' AND %__node__%.level=0';
         return $sql;
     }
 }

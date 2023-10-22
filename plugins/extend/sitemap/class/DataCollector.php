@@ -7,10 +7,13 @@ use Sunlight\Database\TreeReader;
 use Sunlight\Database\TreeReaderOptions;
 use Sunlight\Extend;
 use Sunlight\Page\Page;
+use Sunlight\Util\ConfigurationFile;
 use SunlightExtend\Sitemap\Filter\SitemapTreeFilter;
 
 class DataCollector
 {
+    private $pluginConfig;
+
     /** @var array */
     private $data = [
         'pages' => [],
@@ -18,6 +21,11 @@ class DataCollector
     ];
     /** @var array<int> */
     private $catIds = [];
+
+    public function __construct(ConfigurationFile $pluginConfig)
+    {
+        $this->pluginConfig = $pluginConfig;
+    }
 
     public function collectData(): array
     {
@@ -37,7 +45,9 @@ class DataCollector
         $options = new TreeReaderOptions();
         $options->columns = ['slug', 'type', 'ord', 'visible', 'public', 'level'];
         $options->sortBy = 'ord';
-        $options->filter = new SitemapTreeFilter([]);
+        $options->filter = new SitemapTreeFilter([
+            'check_visible' => ($this->pluginConfig['include_hidden_articles'] === false),
+        ]);
 
         foreach ($treeReader->getFlatTree($options) as $page) {
             if ($page['type'] == Page::CATEGORY) {
@@ -53,15 +63,16 @@ class DataCollector
 
     private function loadArticles(): void
     {
+        $hiddenArts = ($this->pluginConfig['include_hidden_articles'] === false ? ' AND visible=1' : '');
         $arts = DB::query(
             'SELECT id, slug, home1, `time` 
                     FROM ' . DB::table('article') . ' 
-                    WHERE home1 IN (' . DB::arr($this->catIds) . ') AND `public`=1 AND visible=1 AND confirmed=1 AND `time`<' . time() . ' 
+                    WHERE home1 IN (' . DB::arr($this->catIds) . ') AND `public`=1' . $hiddenArts . ' AND confirmed=1 AND `time`<' . time() . ' 
                     ORDER BY home1 ASC, `time` ASC');
 
         while ($art = DB::row($arts)) {
             $this->data['articles'][$art['id']] = [
-                'slug' => $this->data['pages'][$art['home1']]['slug'] . ' / ' . $art['slug'],
+                'slug' => $this->data['pages'][$art['home1']]['slug'] . '/' . $art['slug'],
                 'time' => $art['time'],
                 'type' => 'article'
             ];

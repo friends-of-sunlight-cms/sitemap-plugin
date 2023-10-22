@@ -2,6 +2,7 @@
 
 namespace SunlightExtend\Sitemap;
 
+use Sunlight\Core;
 use Sunlight\Extend;
 use Sunlight\Page\Page;
 use Sunlight\Router;
@@ -84,7 +85,8 @@ class SitemapGenerator
 
     public static function factory(): SitemapGenerator
     {
-        return new self(new DataCollector(), new SitemapIndexGenerator(), new SitemapRemover());
+        $pluginConfig = Core::$pluginManager->getPlugins()->getExtend('sitemap')->getConfig();
+        return new self(new DataCollector($pluginConfig), new SitemapIndexGenerator(), new SitemapRemover());
     }
 
     /**

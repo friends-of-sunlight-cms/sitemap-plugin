@@ -10,14 +10,18 @@
         "system": "^8.0"
     },
     "config_defaults": {
+        "footer_link": true,
         "auto_generate": true,
-        "level_access": 1000
+        "level_access": 1000,
+        "include_hidden_articles": false
     },
     "langs": {
         "sitemap": "lang"
     },
     "events": [],
-    "events.web": [],
+    "events.web": [
+        {"event": "tpl.links.after", "script": "event/tpl_links_after.php"}
+    ],
     "events.admin": [
         {"event": "admin.init", "script": "event/admin/admin_init.php"},
         {"event": "admin.content.modules", "script": "event/admin/content_modules.php"},
