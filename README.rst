@@ -28,6 +28,7 @@ Recommendations
 Don't forget to add the path to the file at the end of the robots.txt file (in the site root), which must be in absolute form.
 
 ::
+
     Sitemap: https://mydomain.tld/sitemap.xml
 
 Features
