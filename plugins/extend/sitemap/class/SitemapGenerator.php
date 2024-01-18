@@ -9,45 +9,32 @@ use Sunlight\Router;
 
 class SitemapGenerator
 {
-    private const ALLOWED_PRIORITY = [
-        self::PRIORITY_ALWAYS,
-        self::PRIORITY_HOURLY,
-        self::PRIORITY_DAILY,
-        self::PRIORITY_WEEKLY,
-        self::PRIORITY_MONTHLY,
-        self::PRIORITY_YEARLY,
-        self::PRIORITY_NEVER
+    private const ALLOWED_FREQUENCIES = [
+        self::FREQUENCY_ALWAYS,
+        self::FREQUENCY_HOURLY,
+        self::FREQUENCY_DAILY,
+        self::FREQUENCY_WEEKLY,
+        self::FREQUENCY_MONTHLY,
+        self::FREQUENCY_YEARLY,
+        self::FREQUENCY_NEVER
     ];
 
-    public const PRIORITY_ALWAYS = 'always';
-    public const PRIORITY_HOURLY = 'hourly';
-    public const PRIORITY_DAILY = 'daily';
-    public const PRIORITY_WEEKLY = 'weekly';
-    public const PRIORITY_MONTHLY = 'monthly';
-    public const PRIORITY_YEARLY = 'yearly';
-    public const PRIORITY_NEVER = 'never';
+    public const FREQUENCY_ALWAYS = 'always';
+    public const FREQUENCY_HOURLY = 'hourly';
+    public const FREQUENCY_DAILY = 'daily';
+    public const FREQUENCY_WEEKLY = 'weekly';
+    public const FREQUENCY_MONTHLY = 'monthly';
+    public const FREQUENCY_YEARLY = 'yearly';
+    public const FREQUENCY_NEVER = 'never';
 
     /** @var SitemapIndexGenerator */
     private $indexGenerator;
     /** @var SitemapRemover */
     private $sitemapRemover;
 
-    /** @var array<string, string> */
-    private $priority = [
-        'default' => self::PRIORITY_MONTHLY,
-        Page::TYPES[Page::SECTION] => self::PRIORITY_MONTHLY,
-        Page::TYPES[Page::CATEGORY] => self::PRIORITY_WEEKLY,
-        Page::TYPES[Page::BOOK] => self::PRIORITY_DAILY,
-        Page::TYPES[Page::GALLERY] => self::PRIORITY_MONTHLY,
-        Page::TYPES[Page::GROUP] => self::PRIORITY_MONTHLY,
-        Page::TYPES[Page::FORUM] => self::PRIORITY_DAILY,
-        Page::TYPES[Page::PLUGIN] => self::PRIORITY_MONTHLY,
-        'article' => self::PRIORITY_MONTHLY,
-    ];
-
     /** @var array<string, float> */
-    private $changefreq = [
-        'default' => 0.5,
+    private $priority = [
+	    'default' => 0.5,
         Page::TYPES[Page::SECTION] => 1.0,
         Page::TYPES[Page::CATEGORY] => 0.7,
         Page::TYPES[Page::BOOK] => 0.8,
@@ -56,6 +43,19 @@ class SitemapGenerator
         Page::TYPES[Page::FORUM] => 0.8,
         Page::TYPES[Page::PLUGIN] => 0.5,
         'article' => 0.5,
+    ];
+
+    /** @var array<string, string> */
+    private $changefreq = [
+        'default' => self::FREQUENCY_MONTHLY,
+        Page::TYPES[Page::SECTION] => self::FREQUENCY_MONTHLY,
+        Page::TYPES[Page::CATEGORY] => self::FREQUENCY_WEEKLY,
+        Page::TYPES[Page::BOOK] => self::FREQUENCY_DAILY,
+        Page::TYPES[Page::GALLERY] => self::FREQUENCY_MONTHLY,
+        Page::TYPES[Page::GROUP] => self::FREQUENCY_MONTHLY,
+        Page::TYPES[Page::FORUM] => self::FREQUENCY_DAILY,
+        Page::TYPES[Page::PLUGIN] => self::FREQUENCY_MONTHLY,
+        'article' => self::FREQUENCY_MONTHLY,
     ];
 
     /** @var array */
@@ -160,26 +160,26 @@ class SitemapGenerator
     private function normalizePriority(): void
     {
         foreach ($this->priority as $type => $prio) {
-            if (!is_string($prio)) {
-                $this->priority[$type] = self::PRIORITY_MONTHLY;
+            if (!is_numeric($prio)) {
+                $this->priority[$type] = 0.5;
                 continue;
             }
-            if (!in_array($prio, self::ALLOWED_PRIORITY)) {
-                $this->priority[$type] = self::PRIORITY_MONTHLY;
-            }
+            $prio = max($prio, 0);
+            $prio = min($prio, 1);
+            $this->priority[$type] = (float)$prio;
         }
     }
 
     private function normalizeFreq(): void
     {
         foreach ($this->changefreq as $type => $freq) {
-            if (!is_numeric($freq)) {
-                $this->changefreq[$type] = 0.5;
+            if (!is_string($freq)) {
+                $this->changefreq[$type] = self::FREQUENCY_MONTHLY;
                 continue;
             }
-            $freq = max($freq, 0);
-            $freq = min($freq, 1);
-            $this->changefreq[$type] = (float)$freq;
+            if (!in_array($freq, self::ALLOWED_FREQUENCIES)) {
+                $this->changefreq[$type] = self::FREQUENCY_MONTHLY;
+            }
         }
     }
 }
