@@ -34,7 +34,7 @@ class SitemapGenerator
 
     /** @var array<string, float> */
     private $priority = [
-	    'default' => 0.5,
+        'default' => 0.5,
         Page::TYPES[Page::SECTION] => 1.0,
         Page::TYPES[Page::CATEGORY] => 0.7,
         Page::TYPES[Page::BOOK] => 0.8,
